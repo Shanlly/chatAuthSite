@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>ChatAuthApp</title>
+		<script
+		src="https://code.jquery.com/jquery-3.2.1.min.js"
+		integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+		crossorigin="anonymous">
+		</script>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<!-- <link rel="stylesheet" type="text/css" href="./style.css"> -->
+	</head>
+<body> 
+	<div class="jumbotron">
+		<div class="container">
+			<h1 align="center">The Ulitmate Chat Room!</h1>
+			<p align="center">Place where all the people in the know come to chat!
+			</p>
+		</div>
+	</div>
+<!-- login in form-->
+	<div class="container login-form" style="display: none">
+		<div class="row">
+			<div class="col-sm-4 col-sm-offset-4">
+				<div id="login-error"></div>
+				<input type="text" id="username">
+				<input type="text" id="password">
+				<button class="btn btn-info" id="login">Login</button>
+				<button class="btn btn-warning" id="register">Register</button>
+			</div>
+		</div>
+	</div>
+<!--container to add new chats-->
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-4 col-sm-offset-4">
+				content: <input type="text" placeholder="Chat away!💭" id="newChat" class="form-control">
+				<button class="btn btn-info" id="sendNewChat">Send Chat</button>
+			</div>
+		</div>
+	</div>
+<!--container for the chats -->
+	<div class="container">
+		<div id="output"></div>
+	</div>
+	<script>
+
+
+function getChats() {
+	$.ajax({
+		method: "GET",
+		url: '/api/chats',
+		success: function(chats){
+// when we get a response, wipe out all of the chats
+			$('#output').empty();
+//rebuild all of the chats
+			for(var i = 0; i < chats.length; i++) {
+				var p = $('<p>');
+				p.text(chats[i].content);
+				$('#output').append(p);
+			}
+		},
+		error: function(err) {
+// On an error (unable to get the chats), show the login form
+			 $('.login-form').show();
+		}
+	});
+}
+
+		$('#sendNewChat').click(function() {
+			// post the chat
+			//console.log($('#newChat').val());
+			$.post('/api/newChat', {
+				content: $('#newChat').val(),
+			}, function() {
+// on success, clear out the existing chat inputs
+				$('#newChat').val('');
+// and re-build the chat paragraphs from the database
+				getChats();
+			});
+		});
+
+//load chats to page
+	$(document).ready(function(){
+		getChats();
+	});
+
+// login a user
+$('#login').click(function() {
+// post to the login api
+	$.post('/api/login', {
+		username: $('#username').val(),
+		password: $('#password').val()
+	}, function(res) {
+// If we haven't logged in, display an error
+		if (res === "error") {
+			$('#login-error').text('Error: Username or password incorrect.');
+		} else {
+// Otherwise, hide the login form and get chats
+			$('.login-form').hide();
+			getChats();
+		}
+	});
+});
+
+//register users to site 
+$('#register').click(function() {
+	$.post('/api/register', {
+		username: $('#username').val(),
+		password: $('#password').val()
+	}, function(res) {
+		// Display the result to the user
+		if (res === "error") {
+			$('#login-error').text('Error: Could not register user.');
+		} else {
+			$('#login-error').text('Registered! Try logging in...');
+		}
+	});
+});
+//setInterval(getChats, 1000);
+
+	</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
